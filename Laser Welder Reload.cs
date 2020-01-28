@@ -1,10 +1,17 @@
-﻿/*
- * R e a d m e
+/*
+ * Laser Welder Reload v2
  * -----------
  * 
- * In this file you can include any instructions or other comments you want to have injected onto the 
- * top of your final script. You can safely delete this file if you do not want any such comments.
+ * 1. Ensure all components are in one cargo container.
+ * 2. Put the name of the cargo container in the const string below.
+ * 3. Group all of your welders in one group by themselves.
+ * 4. Put that group name in the const string below.
+ * 5. Have a timer block run this script once every second.
+ * 6. Enjoy!
  */
+
+private const string SingleCargoContainerName = "Base-Only XL Cargo Container Components";
+private const string WelderGroupName = "Laser Welders";
 
 static readonly Dictionary<string, int> ComponentDict = new Dictionary<string, int>
 {
@@ -44,7 +51,7 @@ public void Main(string argument, UpdateType updateSource)
     {
         for (int i = 0; i < l0.Count; i++)
         {
-            if (l0[i].CustomName == "zc Base-Only XL Cargo Container 3 Components")
+            if (l0[i].CustomName == SingleCargoContainerName)
             {
                 v0 = (IMyCargoContainer)l0[i];
                 break;
@@ -52,14 +59,14 @@ public void Main(string argument, UpdateType updateSource)
         }
         if (v0 == null)
         {
-            ERR_TXT += "no Large Cargo Container block named zc Base-Only XL Cargo Container 3 Components found\n";
+            ERR_TXT += "no Large Cargo Container block named " + SingleCargoContainerName + " found\n";
         }
     }
 
     List<IMyTerminalBlock> v1 = new List<IMyTerminalBlock>();
-    if (GridTerminalSystem.GetBlockGroupWithName("LG lasers") != null)
+    if (GridTerminalSystem.GetBlockGroupWithName(WelderGroupName) != null)
     {
-        GridTerminalSystem.GetBlockGroupWithName("LG lasers").GetBlocksOfType<IMyShipWelder>(v1);
+        GridTerminalSystem.GetBlockGroupWithName(WelderGroupName).GetBlocksOfType<IMyShipWelder>(v1);
         if (v1.Count == 0)
         {
             ERR_TXT += "group LG lasers has no Welder blocks\n";
@@ -79,7 +86,7 @@ public void Main(string argument, UpdateType updateSource)
 
     int currentLaserWelder = 0;
 
-    Int32.TryParse(Me.CustomData, out currentLaserWelder);
+    int.TryParse(Me.CustomData, out currentLaserWelder);
 
     if (currentLaserWelder > (v1.Count - 1))
     {
