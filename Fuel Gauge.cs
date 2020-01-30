@@ -1,5 +1,5 @@
 /*
- * Fuel Gauge v2
+ * Fuel Gauge v3
  * -----------
  * 
  * 1. Put the name of the LCD Panel or Cockpit you want in the const string below.
@@ -21,6 +21,8 @@ void Main(string argument)
     string ERR_TXT = "";
     List<IMyTerminalBlock> BlocksOnGridList = new List<IMyTerminalBlock>();
     GridTerminalSystem.GetBlocksOfType<IMyTerminalBlock>(BlocksOnGridList, filterThis);
+    Dictionary<string, string> EngineDictionary = new Dictionary<string, string>();
+    List<IMyTextSurface> TextSerfaceList = new List<IMyTextSurface>();
 
     if (BlocksOnGridList.Count == 0)
     {
@@ -32,22 +34,39 @@ void Main(string argument)
         {
             if (BlocksOnGridList[i].HasInventory)
             {
-                FuelCount = FuelCount + countItem(BlocksOnGridList[i].GetInventory(0), "Ingot", "Fuel");
+                float tempFuel = countItem(BlocksOnGridList[i].GetInventory(0), "Ingot", "Fuel");
+
+                string tempBlockName = BlocksOnGridList[i].CustomName;
+
+                if (tempBlockName.ToLower().Contains("engine"))
+                {
+                    string tempFuelString;
+
+                    if (((IMyFunctionalBlock)BlocksOnGridList[i]).Enabled)
+                    {
+                        tempFuelString = string.Empty + (int)tempFuel;
+                    }
+                    else
+                    {
+                        tempFuelString = "off";
+                    }
+
+                    EngineDictionary.Add(tempBlockName, tempFuelString);
+                }
+
+                FuelCount = FuelCount + tempFuel;
+            }
+
+            if (BlocksOnGridList[i].CustomName == LCDPanelName)
+            {
+                IMyTextSurface TextSurface = null;
+
+                TextSurface = ((IMyTextSurfaceProvider)BlocksOnGridList[i]).GetSurface(TextSurfaceIndex);
+                if (TextSurface == null) TextSurface = (IMyTextSurface)BlocksOnGridList[i];
+
+                if (TextSurface != null) TextSerfaceList.Add(TextSurface);
             }
         }
-    }
-
-    IMyTextSurface TextSurface = null;
-
-    for (int i = 0; i < BlocksOnGridList.Count; i++)
-    {
-        if (BlocksOnGridList[i].CustomName == LCDPanelName)
-        {
-            TextSurface = ((IMyTextSurfaceProvider)BlocksOnGridList[i]).GetSurface(TextSurfaceIndex);
-            if (TextSurface == null) TextSurface = (IMyTextSurface)BlocksOnGridList[i];
-            break;
-        }
-
     }
 
     if (ERR_TXT != "")
@@ -55,23 +74,25 @@ void Main(string argument)
         Echo("Script Errors:\n" + ERR_TXT + "(make sure block ownership is set correctly)");
         return;
     }
-    else { Echo(""); }
 
-    if (TextSurface != null)
+    string outputString = "Fuel:\n" + (int)FuelCount + "";
+
+    foreach (KeyValuePair<string, string> entry in EngineDictionary)
     {
-        TextSurface.ContentType = ContentType.TEXT_AND_IMAGE;
-        TextSurface.FontSize = 4.0f;
-        TextSurface.Alignment = TextAlignment.CENTER;
-        TextSurface.Font = "monospace";
-        TextSurface.WriteText("Fuel:\n" + (int)FuelCount + "", false);
+        outputString += "\n" + entry.Key + ": " + entry.Value;
+    }
+
+    foreach (IMyTextSurface tempTextSurface in TextSerfaceList)
+    {
+        tempTextSurface.ContentType = ContentType.TEXT_AND_IMAGE;
+        tempTextSurface.WriteText(outputString, false);
     }
 
     IMyTextSurface mesurface0 = Me.GetSurface(0);
     mesurface0.ContentType = ContentType.TEXT_AND_IMAGE;
-    mesurface0.FontSize = 4.0f;
-    mesurface0.Alignment = TextAlignment.CENTER;
-    mesurface0.Font = "monospace";
-    mesurface0.WriteText("Fuel:\n" + (int)FuelCount + "", false);
+    mesurface0.WriteText(outputString, false);
+
+    Echo(outputString);
 }
 
 bool filterThis(IMyTerminalBlock block)
@@ -91,5 +112,6 @@ float countItem(IMyInventory inv, string itemType, string itemSubType)
             total += (float)items[i].Amount;
         }
     }
+
     return total;
 }
