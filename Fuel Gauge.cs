@@ -1,5 +1,5 @@
 /*
- * Fuel Gauge v3
+ * Fuel Gauge v4
  * -----------
  * 
  * 1. Put the name of the LCD Panel or Cockpit you want in the const string below.
@@ -9,6 +9,7 @@
 
 private const string LCDPanelName = "LCD Fuel Gauge";
 private const int TextSurfaceIndex = 0;
+List<IMyTerminalBlock> BlocksOnGridList;
 
 public Program()
 {
@@ -19,8 +20,13 @@ void Main(string argument)
 {
     float FuelCount = 0f;
     string ERR_TXT = "";
-    List<IMyTerminalBlock> BlocksOnGridList = new List<IMyTerminalBlock>();
-    GridTerminalSystem.GetBlocksOfType<IMyTerminalBlock>(BlocksOnGridList, filterThis);
+
+    if (BlocksOnGridList == null)
+    {
+        BlocksOnGridList = new List<IMyTerminalBlock>();
+        GridTerminalSystem.GetBlocksOfType<IMyTerminalBlock>(BlocksOnGridList, filterThis);
+    }
+
     Dictionary<string, string> EngineDictionary = new Dictionary<string, string>();
     List<IMyTextSurface> TextSerfaceList = new List<IMyTextSurface>();
 
